@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- Definição da entidade
-entity Home_control is
+entity homeControll is
     Port (
         main_led : OUT STD_LOGIC; -- Luz da casa (LED)
         main_swich : IN STD_LOGIC; -- swich para a luz da casa (swich)
@@ -29,16 +29,23 @@ entity Home_control is
         timer_led : OUT STD_LOGIC;  -- LED de saída
 
         night_mode : IN STD_LOGIC; -- Modo noturno (swich)
-
-        counter : IN INTEGER range 1 to 6 -- contador
+      
+        -- Visualização no display de 7 segmentos:
+        hex_0_a : OUT STD_LOGIC;
+        hex_0_b : OUT STD_LOGIC;
+        hex_0_c : OUT STD_LOGIC;
+        hex_0_d : OUT STD_LOGIC;
+        hex_0_e : OUT STD_LOGIC;
+        hex_0_f : OUT STD_LOGIC;
+        hex_0_g : OUT STD_LOGIC
     );
-end Home_control;
+end homeControll;
 
 -- Arquitetura
-architecture Behavioral of Home_control is
+architecture Behavioral of homeControll is
     signal counter : STD_LOGIC_VECTOR(2 downto 0) := "001"; -- Inicia o contador em 1
 begin
-    process(main_swich, room_1_swich, room_2_swich, room_3_swich, intensity_control, timer_switch)
+    process(main_swich, room_1_swich, room_2_swich, room_3_swich, intensity_control, timer_switch) is
     begin
         if main_swich = '1' then  -- Switch ON (assumindo que '1' é nível alto)
             main_led <= '1';  -- Acende o LED
@@ -61,7 +68,94 @@ begin
             else
                 room_3_led <= '0';
             end if;
-        else
+        
+        -- intensity
+         if (intensity_control'EVENT and intensity_control = '0') then  -- Push button ON (assumindo que '1' é nível alto)
+          counter <= counter + "001";  -- Incrementa o contador
+          
+          if night_mode = '1' AND counter = "011" then
+             counter <= "001";
+          end if;
+
+          if counter = "001" then -- Se o contador for igual a 2 (assumindo que '010' é 2)
+             intensity_1 <= '1'; -- Acende o LED
+             intensity_2 <= '0'; -- Desliga o LED
+             intensity_3 <= '0'; -- Desliga o LED
+             intensity_4 <= '0'; -- Desliga o LED
+             intensity_5 <= '0'; -- Desliga o LED
+             
+             -- Visualização no display da itensidade 1
+             hex_0_a <= '1';
+             hex_0_b <= '0';
+             hex_0_c <= '0';
+             hex_0_d <= '1';
+             hex_0_e <= '1';
+             hex_0_f <= '1';
+             hex_0_g <= '1';
+          elsif counter = "010" then -- Se o contador for igual a 2 (assumindo que '010' é 2)
+             intensity_1 <= '1'; -- Acende o LED
+             intensity_2 <= '1'; -- Acende o LED
+             intensity_3 <= '0'; -- Desliga o LED
+             intensity_4 <= '0'; -- Desliga o LED
+             intensity_5 <= '0'; -- Desliga o LED
+             
+             -- Visualização no display da itensidade 2
+             hex_0_a <= '0';
+             hex_0_b <= '0';
+             hex_0_c <= '1';
+             hex_0_d <= '0';
+             hex_0_e <= '0';
+             hex_0_f <= '1';
+             hex_0_g <= '0';
+          elsif counter = "011" then -- Se o contador for igual a 3 (assumindo que '011' é 3)
+             intensity_1 <= '1'; -- Acende o LED
+             intensity_2 <= '1'; -- Acende o LED
+             intensity_3 <= '1'; -- Acende o LED
+             intensity_4 <= '0'; -- Desliga o LED
+             intensity_5 <= '0'; -- Desliga o LED
+
+             -- Visualização no display da itensidade 3
+             hex_0_a <= '0';
+             hex_0_b <= '0';
+             hex_0_c <= '0';
+             hex_0_d <= '0';
+             hex_0_e <= '1';
+             hex_0_f <= '1';
+             hex_0_g <= '0';
+          elsif counter = "100" then -- Se o contador for igual a 4 (assumindo que '100' é 4)
+             intensity_1 <= '1'; -- Acende o LED
+             intensity_2 <= '1'; -- Acende o LED
+             intensity_3 <= '1'; -- Acende o LED
+             intensity_4 <= '1'; -- Acende o LED
+             intensity_5 <= '0'; -- Desliga o LED
+
+             -- Visualização no display da itensidade 4
+             hex_0_a <= '1';
+             hex_0_b <= '0';
+             hex_0_c <= '0';
+             hex_0_d <= '1';
+             hex_0_e <= '1';
+             hex_0_f <= '0';
+             hex_0_g <= '0';
+          else  -- Se o contador for igual a 5
+             counter <= "001"; 
+             intensity_1 <= '1'; -- Acende o LED
+             intensity_2 <= '1'; -- Acende o LED
+             intensity_3 <= '1'; -- Acende o LED
+             intensity_4 <= '1'; -- Acende o LED
+             intensity_5 <= '1'; -- Acende o LED
+
+             -- Visualização no display da itensidade 5
+             hex_0_a <= '0';
+             hex_0_b <= '1';
+             hex_0_c <= '0';
+             hex_0_d <= '0';
+             hex_0_e <= '1';
+             hex_0_f <= '0';
+             hex_0_g <= '0';
+          end if;
+        end if;
+        else 
             main_led <= '0';  -- Desliga o LED
             intensity_1 <= '0'; -- Desliga o LED
             intensity_2 <= '0'; -- Desliga o LED
@@ -72,53 +166,6 @@ begin
             room_1_led <= '0';
             room_2_led <= '0';
             room_3_led <= '0';
-        end if;
-    
-        -- intensity
-        if intensity_control = '1' then  -- Push button ON (assumindo que '1' é nível alto)
-            counter <= counter + "001";  -- Incrementa o contador
-
-            if night_mode = '1' AND counter = "100" then
-                counter <= "001";
-                intensity_1 <= '1'; -- Acende o LED
-                intensity_2 <= '0'; -- Acende o LED
-                intensity_3 <= '0'; -- Desliga o LED
-                intensity_4 <= '0'; -- Desliga o LED
-                intensity_5 <= '0'; -- Desliga o LED
-            end if;
-
-            if counter = "010" then -- Se o contador for igual a 2 (assumindo que '010' é 2)
-                intensity_1 <= '1'; -- Acende o LED
-                intensity_2 <= '1'; -- Acende o LED
-                intensity_3 <= '0'; -- Desliga o LED
-                intensity_4 <= '0'; -- Desliga o LED
-                intensity_5 <= '0'; -- Desliga o LED
-            elsif counter = "011" then -- Se o contador for igual a 3 (assumindo que '011' é 3)
-                intensity_1 <= '1'; -- Acende o LED
-                intensity_2 <= '1'; -- Acende o LED
-                intensity_3 <= '1'; -- Acende o LED
-                intensity_4 <= '0'; -- Desliga o LED
-                intensity_5 <= '0'; -- Desliga o LED
-            elsif counter = "100" then -- Se o contador for igual a 4 (assumindo que '100' é 4)
-                intensity_1 <= '1'; -- Acende o LED
-                intensity_2 <= '1'; -- Acende o LED
-                intensity_3 <= '1'; -- Acende o LED
-                intensity_4 <= '1'; -- Acende o LED
-                intensity_5 <= '0'; -- Desliga o LED
-            elsif counter = "101" then -- Se o contador for igual a 5 (assumindo que '101' é 5)
-                intensity_1 <= '1'; -- Acende o LED
-                intensity_2 <= '1'; -- Acende o LED
-                intensity_3 <= '1'; -- Acende o LED
-                intensity_4 <= '1'; -- Acende o LED
-                intensity_5 <= '1'; -- Acende o LED
-            else
-                counter <= "001";  -- Reinicia o contador
-                intensity_1 <= '1'; -- Acende o LED
-                intensity_2 <= '0'; -- Desliga o LED
-                intensity_3 <= '0'; -- Desliga o LED
-                intensity_4 <= '0'; -- Desliga o LED
-                intensity_5 <= '0'; -- Desliga o LED
-            end if;
         end if;
     end process;
 end Behavioral;
